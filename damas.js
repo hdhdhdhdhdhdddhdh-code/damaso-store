@@ -13,15 +13,21 @@ const btnNext   = document.querySelector('.nav-btn.next');
 const VISIBLE  = 5;      // عدد الصور الصغيرة الظاهرة
 const DURATION = 900;    // مدة حركة الانتقال (ms)
  
-// ألوان احتياطية تُستخدم فقط إن تعذّر حساب لون الصورة تلقائياً
+// ===== الألوان الاحتياطية =====
+// تُستخدم للمنتج الذي لا تكتب له glow و base في products.js.
+// كلها فاتحة هادئة (أبيض وتدرجاته) تظهر جميلة خلف أي منتج، وتتحول النصوص تلقائياً إلى الغامق.
+// تُوزَّع على المنتجات بالتناوب. accent = لون التمييز في قسم "من نحن" والفوتر (الأبيض لا يصلح لهما).
 const FALLBACK_COLORS = [
-  ['#1a6fff', '#03039c'],
-  ['#2fbf3a', '#04450b'],
-  ['#ff8a1f', '#a8470a'],
-  ['#d94f9a', '#5a0f3a'],
-  ['#8a5cf6', '#2a0f6b']
+  { glow: '#ffffff', base: '#dbe4f1', accent: ['#5b7cfa', '#2f43b3'] },   // لؤلؤي مائل للأزرق
+  { glow: '#fffdf9', base: '#eadfce', accent: ['#d98a3d', '#8a4a14'] },   // كريمي دافئ
+  { glow: '#fbfffd', base: '#d3e8dd', accent: ['#2fa37a', '#17644b'] },   // نعناعي هادئ
+  { glow: '#fffafb', base: '#efd8dc', accent: ['#d4577a', '#8c2b4a'] },   // وردي ناعم
+  { glow: '#fdfcff', base: '#ddd8f1', accent: ['#7f63e0', '#45319b'] }    // لافندر
 ];
- 
+const LIGHT_ACCENT = ['#5b7cfa', '#2f43b3'];   // لون التمييز إن كتبتَ أنت ألواناً فاتحة
+// true: يحسب لون الخلفية من صورة المنتج (الطريقة القديمة) بدل الألوان الاحتياطية
+const AUTO_COLORS_FROM_IMAGE = false;
+
 let products = [];   // المنتجات الصالحة فقط
 let current  = 0;    // رقم المنتج المعروض في المنتصف
 let busy     = false;
@@ -41,7 +47,9 @@ function reloadHome() {
   if (reloadingNow) return;
   reloadingNow = true;
 
-  const base = getComputedStyle(bg).getPropertyValue('--base').trim() || '#0000c8';
+  const base = bg.classList.contains('light')
+    ? '#1b2340'   // خلفية فاتحة: لودر غامق ليظهر الدوّار الأبيض
+    : (getComputedStyle(bg).getPropertyValue('--base').trim() || '#0000c8');
   try {
     sessionStorage.setItem('damasReload', '1');
     sessionStorage.setItem('damasReloadBg', base);
@@ -110,7 +118,8 @@ function normalizeText(o) {
   const t = {};
   if (o.name)     t.name     = String(o.name);
   if (o.desc)     t.desc     = String(o.desc);
-  if (o.oldPrice) t.oldPrice = toPrice(o.oldPrice);
+  // oldPrice: '' (أو false) = بدون سعر قديم، ويظهر السعر الجديد وحده. وإن لم تكتب الحقل أصلاً يؤخذ من damas.html
+  if ('oldPrice' in o) t.oldPrice = o.oldPrice ? toPrice(o.oldPrice) : '';
   if (o.price)    t.price    = toPrice(o.price);
   if (Array.isArray(o.features) && o.features.length) t.features = o.features.map(String);
 
@@ -147,7 +156,7 @@ function applyText(p, animate) {
   const t = { ...defaults, ...p.text };
   if (els.name)     els.name.textContent     = t.name;
   if (els.desc)     els.desc.textContent     = t.desc;
-  if (els.oldPrice) els.oldPrice.textContent = t.oldPrice;
+  if (els.oldPrice) els.oldPrice.textContent = (t.oldPrice && t.oldPrice !== t.price) ? t.oldPrice : '';
   if (els.price)    els.price.textContent    = t.price;
   if (els.features) {
     els.features.replaceChildren(...t.features.map(f => {
@@ -166,7 +175,7 @@ function offscreenShift(el, side) {
 }
  
 // في الجوال: النصوص لا تخرج للجانبين، بل تتلاشى لحظة وتعود في مكانها وقد تغيّرت
-const PHONE_QUERY = '(max-width: 600px)';   // نفس حد الجوال في damas.css
+const PHONE_QUERY = '(max-width: 900px)';   // نفس حد التخطيط العمودي في damas.css
 const FADE_OUT  = 300;
 const FADE_HOLD = 150;
 const FADE_IN   = 400;
@@ -308,25 +317,61 @@ function autoColors(img) {
   }
 }
  
+// سطوع لون CSS (0 غامق ... 1 فاتح): نحوّله إلى RGB عبر canvas ليعمل مع hex وhsl والأسماء
+function brightness(color) {
+  try {
+    const ctx = document.createElement('canvas').getContext('2d');
+    ctx.fillStyle = '#000';
+    ctx.fillStyle = color;
+    const v = ctx.fillStyle;
+    let r, g, b;
+    if (v[0] === '#') {
+      const n = parseInt(v.slice(1), 16);
+      r = (n >> 16) & 255; g = (n >> 8) & 255; b = n & 255;
+    } else {
+      [r, g, b] = v.match(/[\d.]+/g).map(Number);
+    }
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  } catch (err) {
+    return 0;
+  }
+}
+
+// الخلفية فاتحة؟ عندها تتحول النصوص والأزرار إلى الغامق (كلاس light)
+function isLightBg(glow, base) {
+  return brightness(glow) * 0.35 + brightness(base) * 0.65 > 0.62;
+}
+
 function buildProduct(item, index, img) {
   const o = typeof item === 'string' ? { src: item } : item;
-  let glow = o.glow, base = o.base;
- 
-  if (!glow || !base) {
+  let glow = o.glow, base = o.base, accent = null;
+
+  if ((!glow || !base) && AUTO_COLORS_FROM_IMAGE) {
     const auto = autoColors(img);
     if (auto) { glow = glow || auto.glow; base = base || auto.base; }
   }
   if (!glow || !base) {
     const f = FALLBACK_COLORS[index % FALLBACK_COLORS.length];
-    glow = glow || f[0];
-    base = base || f[1];
+    glow = glow || f.glow;
+    base = base || f.base;
+    accent = f.accent;
   }
-  return { url: img.src, img, glow, base, text: normalizeText(o) };
+  const light = isLightBg(glow, base);
+  return { url: img.src, img, glow, base, light, accent: light ? (accent || LIGHT_ACCENT) : null, text: normalizeText(o) };
 }
- 
+
 function setBackground(p) {
   bg.style.setProperty('--glow', p.glow);
   bg.style.setProperty('--base', p.base);
+  bg.classList.toggle('light', !!p.light);
+  // لون تمييز لقسم "من نحن" والفوتر عند الخلفيات الفاتحة (يقرؤه about.js)
+  if (p.accent) {
+    bg.style.setProperty('--acc-glow', p.accent[0]);
+    bg.style.setProperty('--acc-base', p.accent[1]);
+  } else {
+    bg.style.removeProperty('--acc-glow');
+    bg.style.removeProperty('--acc-base');
+  }
 }
  
  
@@ -361,7 +406,7 @@ const STRIP_MS = 700;   // مدة تقدّم الصور داخل الشريط (m
 // (المنتج المعروض في المنتصف لا يتكرر داخل الشريط)
 function stripIndexes(cur) {
   const n = products.length;
-  const count = Math.min(VISIBLE, n - 1);
+  const count = isSmall() ? n - 1 : Math.min(VISIBLE, n - 1);   // الجوال: كل المنتجات للتمرير باللمس
   return Array.from({ length: count }, (_, k) => (cur + 1 + k) % n);
 }
  
@@ -393,28 +438,44 @@ function median(arr) {
   return s[Math.floor(s.length / 2)];
 }
  
-// يحدّث الشريط للمنتج الجديد بحركة هادئة:
-// الصورة المضغوطة تغادر (تطير للمنتصف)، والصور التي بعدها تتقدم لتملأ مكانها،
-// وصورة جديدة تظهر في آخر الشريط
-function updateStrip(newCur, clickedEl) {
+// يحدّث الشريط للمنتج الجديد بحركة هادئة، كأن الصور مصطفّة على "دور" يتحرك:
+// الصورة المضغوطة تغادر مكانها (تطير للمنتصف)، فتتقدم الصور التي بعدها لتملأ الفراغ بانزلاق ناعم،
+// وصورة المنتج الذي كان في المنتصف تظهر في نهاية الصف.
+// lateIndex: منتج يظهر مكانه في الشريط في آخر الحركة فقط (عند الرجوع تهبط إليه الصورة الطائرة)
+function updateStrip(newCur, clickedEl, lateIndex = -1) {
+  const small = isSmall();
   const oldEls = [...strip.children];
   const oldRects = new Map(oldEls.map(el => [el, el.getBoundingClientRect()]));
   const byIndex = new Map(oldEls.map(el => [Number(el.dataset.index), el]));
- 
+
   const reused = new Set();
   const fresh = new Set();
-  const ordered = stripIndexes(newCur).map(pi => {
+  // الجوال: الشريط "دور" بسيط. الصورة المضغوطة تخرج منه فقط، والبقية تحتفظ بترتيبها وتتقدم خطوة،
+  // وصورة المنتج الذي كان في المنتصف تُضاف في آخر الدور (بدون التفاف يجعل الصور تعبر فوق بعضها)
+  let idxList = stripIndexes(newCur);
+  if (small && lateIndex < 0) {
+    idxList = oldEls.map(el => Number(el.dataset.index)).filter(pi => pi !== newCur);
+    idxList.push(current);
+  }
+  // الجوال أبطأ وأهدأ: الانزلاق يبدأ بعد أن تبتعد الصورة الطائرة، والصورة الجديدة تظهر بعده
+  const slideMs    = small ? 1000 : STRIP_MS;
+  const slideDelay = small ? 250 : 100;
+  const freshMs    = small ? 800 : STRIP_MS;
+  const freshDelay = small ? 550 : 150;
+
+  const ordered = idxList.map(pi => {
     const old = byIndex.get(pi);
     if (old && old !== clickedEl) { reused.add(old); return old; }
     const el = makeThumb(pi);
     fresh.add(el);
     return el;
   });
- 
-  // الصور الخارجة من الشريط (غير المضغوطة): نسخة ثابتة تتلاشى في مكانها
+
+  // الصور الخارجة من الشريط (غير المضغوطة): نسخة ثابتة تتلاشى في مكانها بنفس شكلها (الخلفية الضبابية)
   oldEls.forEach(el => {
     if (reused.has(el) || el === clickedEl) return;
     const r = oldRects.get(el);
+    const cs = getComputedStyle(el);
     const ghost = el.cloneNode();
     Object.assign(ghost.style, {
       position: 'fixed',
@@ -426,20 +487,56 @@ function updateStrip(newCur, clickedEl) {
       objectFit: 'contain',
       margin: 0,
       zIndex: 5,
-      pointerEvents: 'none'
+      pointerEvents: 'none',
+      boxSizing: 'border-box',
+      padding: cs.padding,
+      borderWidth: cs.borderTopWidth,
+      borderStyle: cs.borderTopStyle,
+      borderColor: cs.borderTopColor,
+      borderRadius: cs.borderRadius,
+      backgroundColor: cs.backgroundColor
     });
     document.body.appendChild(ghost);
     ghost.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 350, easing: 'ease-out', fill: 'forwards' })
       .finished.then(() => ghost.remove(), () => ghost.remove());
   });
- 
+
+  // إطار الصورة المضغوطة (خلفيتها الضبابية) يتلاشى في مكانه بهدوء بدل أن يختفي فجأة
+  if (clickedEl) {
+    const r = oldRects.get(clickedEl);
+    const cs = getComputedStyle(clickedEl);
+    if (cs.backgroundColor !== 'rgba(0, 0, 0, 0)') {
+      const frame = document.createElement('div');
+      Object.assign(frame.style, {
+        position: 'fixed',
+        left: r.left + 'px',
+        top: r.top + 'px',
+        width: r.width + 'px',
+        height: r.height + 'px',
+        zIndex: 4,
+        pointerEvents: 'none',
+        boxSizing: 'border-box',
+        borderWidth: cs.borderTopWidth,
+        borderStyle: cs.borderTopStyle,
+        borderColor: cs.borderTopColor,
+        borderRadius: cs.borderRadius,
+        backgroundColor: cs.backgroundColor,
+        backdropFilter: cs.backdropFilter,
+        webkitBackdropFilter: cs.backdropFilter
+      });
+      document.body.appendChild(frame);
+      frame.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 600, easing: 'ease-out', fill: 'forwards' })
+        .finished.then(() => frame.remove(), () => frame.remove());
+    }
+  }
+
   strip.replaceChildren(...ordered);
- 
+
   const ease = 'cubic-bezier(.45, .05, .25, 1)';   // حركة هادئة تبدأ وتنتهي بنعومة
   const anims = [];
   const shifts = [];
- 
-  // الصور الباقية تنزلق من مكانها القديم إلى الجديد
+
+  // الصور الباقية تنزلق من مكانها القديم إلى الجديد (بعد لحظة قصيرة من اختفاء الصورة المضغوطة)
   reused.forEach(el => {
     const o = oldRects.get(el);
     const n = el.getBoundingClientRect();
@@ -449,29 +546,55 @@ function updateStrip(newCur, clickedEl) {
     shifts.push(dx);
     anims.push(el.animate(
       [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'translate(0, 0)' }],
-      { duration: STRIP_MS, easing: ease }
+      { duration: slideMs, delay: slideDelay, easing: ease, fill: 'backwards' }
     ).finished);
   });
- 
+
   // الصور الجديدة تدخل مع نفس الاتجاه كأنها جزء من الحركة
   const typical = median(shifts);
   fresh.forEach(el => {
+    if (Number(el.dataset.index) === lateIndex) {
+      // تبقى مخفية حتى تصلها الصورة الطائرة في آخر الحركة
+      anims.push(el.animate(
+        [{ opacity: 0 }, { opacity: 0, offset: 0.9 }, { opacity: 1 }],
+        { duration: DURATION, easing: 'linear', fill: 'backwards' }
+      ).finished);
+      return;
+    }
     anims.push(el.animate(
       [{ opacity: 0, transform: `translateX(${typical}px)` }, { opacity: 1, transform: 'translateX(0)' }],
-      { duration: STRIP_MS, delay: 150, easing: ease, fill: 'backwards' }
+      { duration: freshMs, delay: freshDelay, easing: ease, fill: 'backwards' }
     ).finished);
   });
- 
+
   updateArrows();
   return Promise.all(anims).catch(() => {});
 }
- 
- 
+
+
 /* ---------- الانتقال إلى منتج ---------- */
  
 // الشاشات الصغيرة (نفس حد التخطيط العمودي في damas.css)
 const SMALL_QUERY = '(max-width: 900px)';
 const isSmall = () => window.matchMedia(SMALL_QUERY).matches;
+
+// عند عبور حد الشاشة الصغيرة نعيد بناء الشريط (كل المنتجات للتمرير في الجوال، و5 في الشاشات الكبيرة)
+window.matchMedia(SMALL_QUERY).addEventListener('change', () => {
+  if (!busy && products.length) renderStrip();
+});
+
+// الشريط في الجوال تحت الصورة: إن كان المنتج الكبير خارج الشاشة نصعد إليه أولاً ثم تبدأ الحركة
+async function ensureMainVisible() {
+  const r = main.getBoundingClientRect();
+  if (r.top >= 0 && r.bottom <= window.innerHeight) return;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  let last = -1, same = 0;
+  for (let i = 0; i < 30 && same < 3; i++) {
+    await new Promise(res => setTimeout(res, 50));
+    same = window.scrollY === last ? same + 1 : 0;
+    last = window.scrollY;
+  }
+}
 
 // المستطيل الذي تشغله الصورة فعلياً داخل صندوق (object-fit: contain)
 function fitRect(box, img) {
@@ -480,24 +603,64 @@ function fitRect(box, img) {
   return { left: box.left + (box.width - w) / 2, top: box.top + (box.height - h) / 2, width: w, height: h };
 }
 
-// thumb: الصورة الصغيرة المضغوطة (تطير للمنتصف).
-// في الشاشات الكبيرة: بدونها (سهم السابق) تدخل الصورة الجديدة من الأسفل.
-// في الشاشات الصغيرة: الحركة واحدة دائماً، المنتج يطير من الشريط السفلي إلى مكان المنتج الكبير.
+// المستطيل الداخلي لصورة صغيرة (بعد الحشوة والإطار)، حيث تقع الصورة نفسها فعلياً
+function innerRect(el) {
+  const r = el.getBoundingClientRect();
+  const cs = getComputedStyle(el);
+  const n = k => parseFloat(cs[k]) || 0;
+  const l = n('paddingLeft') + n('borderLeftWidth'), t = n('paddingTop') + n('borderTopWidth');
+  const rr = n('paddingRight') + n('borderRightWidth'), b = n('paddingBottom') + n('borderBottomWidth');
+  return { left: r.left + l, top: r.top + t, width: r.width - l - rr, height: r.height - t - b };
+}
+
+function placeFixed(el, r, z) {
+  Object.assign(el.style, {
+    position: 'fixed',
+    left: r.left + 'px',
+    top: r.top + 'px',
+    width: r.width + 'px',
+    height: r.height + 'px',
+    maxWidth: 'none',
+    margin: 0,
+    zIndex: z,
+    transformOrigin: 'top left',
+    pointerEvents: 'none'
+  });
+}
+
+// تحريك صورة طائرة من مستطيل إلى آخر (انتقال وتكبير/تصغير)
+function fly(el, from, target) {
+  return el.animate([
+    { transform: 'translate(0, 0) scale(1, 1)' },
+    { transform: `translate(${target.left - from.left}px, ${target.top - from.top}px) scale(${target.width / from.width}, ${target.height / from.height})` }
+  ], { duration: DURATION, easing: 'ease-in-out', fill: 'forwards' }).finished;
+}
+
+// التالي أو الضغط على صورة من الشريط (thumb):
+//   الصورة تطير من مكانها إلى المنتصف، ويختفي مكانها من الشريط فيتقدم الدور، وصورة المنتصف القديمة تصعد وتتلاشى
+//   وتظهر في نهاية الصف.
+// السابق (بدون thumb): عكس ذلك تماماً: صورة المنتصف تعود إلى بداية الصف، والمنتج السابق ينزل من الأعلى
+//   إلى المنتصف، ويتراجع الدور خطوة.
 async function goTo(index, thumb) {
   if (busy || index === current || !products[index]) return;
   busy = true;
 
-  const next = products[index];
+  const next  = products[index];
+  const prev  = products[current];
+  const back  = !thumb;
   const small = isSmall();
   let flyer, mainAnim, waveAnim;
 
   try {
+    if (small) await ensureMainVisible();
     const to = main.getBoundingClientRect();
     const { cx, cy, radius } = getGlowGeometry();
 
     // 1) الخلفية الجديدة: تتسع من وسط المنتج، وفي الشاشات الصغيرة تتبدل بتلاشٍ ناعم
     wave.style.setProperty('--glow', next.glow);
     wave.style.setProperty('--base', next.base);
+    // ألوان النصوص (فاتحة/غامقة) تتبدل في منتصف الحركة مع اتساع الخلفية
+    setTimeout(() => bg.classList.toggle('light', !!next.light), DURATION * 0.5);
     waveAnim = small
       ? wave.animate([
           { clipPath: 'inset(0)', opacity: 0 },
@@ -507,13 +670,27 @@ async function goTo(index, thumb) {
           { clipPath: `circle(0px at ${cx}px ${cy}px)` },
           { clipPath: `circle(${radius}px at ${cx}px ${cy}px)` }
         ], { duration: DURATION, easing: 'ease-in-out', fill: 'forwards' });
- 
-    // 2) الصورة الحالية تصعد للأعلى فقط وتزداد شفافيتها
-    mainAnim = main.animate([
-      { transform: 'translateY(0)', opacity: 1 },
-      { transform: `translateY(${-to.height * 0.9}px)`, opacity: 0 }
-    ], { duration: DURATION, easing: 'ease-in', fill: 'forwards' });
- 
+
+    // 2) الصورة الكبيرة
+    if (back) {
+      // الرجوع: نسخة من الصورة الحالية تبدأ من مكانها، والصورة الكبيرة تتبدل للمنتج السابق وتنزل من الأعلى
+      flyer = new Image();
+      flyer.src = prev.url;
+      placeFixed(flyer, fitRect(to, prev.img), 10);
+      document.body.appendChild(flyer);
+      main.src = next.url;
+      mainAnim = main.animate([
+        { transform: `translateY(${-to.height * 0.9}px)`, opacity: 0 },
+        { transform: 'translateY(0)', opacity: 1 }
+      ], { duration: DURATION, easing: 'ease-out', fill: 'backwards' });
+    } else {
+      // التالي: الصورة الحالية تصعد للأعلى وتزداد شفافيتها
+      mainAnim = main.animate([
+        { transform: 'translateY(0)', opacity: 1 },
+        { transform: `translateY(${-to.height * 0.9}px)`, opacity: 0 }
+      ], { duration: DURATION, easing: 'ease-in', fill: 'forwards' });
+    }
+
     // شارة العرض القديمة تتلاشى مع بدء الانتقال
     if (els.badge && !els.badge.hidden) {
       if (offerAnim) offerAnim.cancel();
@@ -521,90 +698,43 @@ async function goTo(index, thumb) {
     }
 
     const waits = [mainAnim.finished, waveAnim.finished];
- 
+
     // النصوص تخرج (أو تتلاشى في الجوال) وتعود ببيانات المنتج الجديد
     const textPromise = swapText(next).catch(err => console.error(err));
- 
-    // 3) الصورة الصغيرة تغادر الشريط وتطير وتكبر إلى مكان وحجم صورة المنتصف
-    let flyThumb = thumb;          // الصورة الصغيرة التي تطير (قد تكون فعلية أو مصطنعة)
-    let fromBox = null;            // صندوق الانطلاق للصورة المصطنعة
-    if (small && !flyThumb) {
-      // سهم السابق: إن كان المنتج ظاهراً في الشريط يطير منه، وإلا يطير من جهة سهم السابق
-      flyThumb = strip.querySelector(`img[data-index="${index}"]`);
-      if (!flyThumb) {
-        const ref = strip.firstElementChild ? strip.firstElementChild.getBoundingClientRect() : null;
-        const bw  = ref ? ref.width : 70;
-        const bh  = ref ? ref.height : 70;
-        const pb  = btnPrev.getBoundingClientRect();
-        fromBox = { left: pb.left + pb.width / 2 - bw / 2, top: pb.top + pb.height / 2 - bh / 2, width: bw, height: bh };
-      }
-    }
-    const usesFlyer = !!(flyThumb || fromBox);
 
-    if (usesFlyer) {
-      const box = fromBox || flyThumb.getBoundingClientRect();
-      let from, target;
-      if (small) {
-        // الصورة داخل صندوق ثابت (contain): نطير من حجمها الفعلي إلى حجمها الفعلي في مكان المنتج الكبير
-        from   = fitRect(box, next.img);
-        target = fitRect(to, next.img);
-      } else {
-        const aspect = next.img.naturalHeight / next.img.naturalWidth;
-        const targetH = to.width * aspect;
-        from   = box;
-        target = { left: to.left, top: to.top + to.height / 2 - targetH / 2, width: to.width, height: targetH };
-      }
-      const scaleX = target.width / from.width;
-      const scaleY = target.height / from.height;
-      const targetLeft = target.left;
-      const targetTop  = target.top;
+    // 3) الصورة الطائرة والشريط
+    const thumbBox = back ? null : innerRect(thumb);          // نقيسها قبل أن يتغير الشريط
+    const stripPromise = updateStrip(index, thumb || null, back ? current : -1);
 
-      if (flyThumb) flyer = flyThumb.cloneNode();
-      else { flyer = new Image(); flyer.src = next.url; }
-      flyer.className = '';
-      Object.assign(flyer.style, {
-        position: 'fixed',
-        left: from.left + 'px',
-        top: from.top + 'px',
-        width: from.width + 'px',
-        height: from.height + 'px',
-        maxWidth: 'none',
-        margin: 0,
-        zIndex: 10,
-        transformOrigin: 'top left',
-        pointerEvents: 'none'
-      });
+    if (back) {
+      // تعود إلى مكانها الجديد في بداية الشريط
+      const slot = strip.querySelector(`img[data-index="${current}"]`);
+      if (slot) waits.push(fly(flyer, fitRect(to, prev.img), fitRect(innerRect(slot), prev.img)));
+      else { flyer.remove(); flyer = null; }
+    } else {
+      // تطير من مكانها في الشريط إلى مكان وحجم صورة المنتصف
+      flyer = new Image();
+      flyer.src = next.url;
+      const from = fitRect(thumbBox, next.img);
+      placeFixed(flyer, from, 10);
       document.body.appendChild(flyer);
- 
-      waits.push(flyer.animate([
-        { transform: 'translate(0, 0) scale(1, 1)' },
-        { transform: `translate(${targetLeft - from.left}px, ${targetTop - from.top}px) scale(${scaleX}, ${scaleY})` }
-      ], { duration: DURATION, easing: 'ease-in-out', fill: 'forwards' }).finished);
+      waits.push(fly(flyer, from, fitRect(to, next.img)));
     }
- 
-    // 4) في نفس اللحظة: الشريط يتقدم بهدوء ويملأ مكان الصورة التي غادرت
-    const stripPromise = updateStrip(index, flyThumb || null);
- 
+
     await Promise.all(waits);
- 
-    // نبدّل الصورة الأساسية ونثبّت الخلفية الجديدة
-    main.src = next.url;
+
+    // نثبّت الصورة الأساسية والخلفية الجديدة
+    if (!back) main.src = next.url;
     setBackground(next);
     mainAnim.cancel();
     waveAnim.cancel();
     if (flyer) { flyer.remove(); flyer = null; }
- 
-    // عند سهم السابق: الصورة الجديدة تدخل من الأسفل
-    const enter = usesFlyer ? null : main.animate([
-      { transform: 'translateY(300px)', opacity: 0 },
-      { transform: 'translateY(0)', opacity: 1 }
-    ], { duration: 600, easing: 'ease-out' });
- 
+
     current = index;
     updateGlowCenter();
- 
-    // ننتظر انتهاء بقية الحركات: الصورة الداخلة والنصوص والشريط
-    await Promise.all([enter ? enter.finished : null, textPromise, stripPromise]);
+
+    // ننتظر انتهاء بقية الحركات: النصوص والشريط
+    await Promise.all([textPromise, stripPromise]);
   } catch (err) {
     console.error(err);
   } finally {
@@ -613,13 +743,13 @@ async function goTo(index, thumb) {
     busy = false;
   }
 }
- 
-// التالي = أول صورة في الشريط، والسابق = المنتج الذي قبل الحالي في القائمة
-btnNext.addEventListener('click', () => {
+
+// السهم الأيمن (يشير لليمين) = التالي: أول صورة في الشريط. السهم الأيسر (يشير لليسار) = السابق: المنتج الذي قبل الحالي
+btnPrev.addEventListener('click', () => {
   const first = strip.firstElementChild;
   if (first) goTo(Number(first.dataset.index), first);
 });
-btnPrev.addEventListener('click', () => {
+btnNext.addEventListener('click', () => {
   if (products.length > 1) goTo((current - 1 + products.length) % products.length, null);
 });
  
@@ -768,7 +898,7 @@ async function loadRate() {
 loadRate();
  
 // رقم واتساب الذي يستقبل الطلبات (بدون + وبدون مسافات)
-const WHATSAPP_NUMBER = '963931493129';
+const WHATSAPP_NUMBER = '963986274790';
 
 
 
@@ -844,8 +974,11 @@ function fillSummary() {
   const cur  = products[current];
   const glow = cs.getPropertyValue('--glow').trim() || (cur && cur.glow);
   const base = cs.getPropertyValue('--base').trim() || (cur && cur.base);
-  if (glow) orderOverlay.style.setProperty('--glow', glow);
-  if (base) orderOverlay.style.setProperty('--base', base);
+  // خلفية المنتج فاتحة: طبقة الطلب تبقى غامقة لتبقى النصوص البيضاء مقروءة
+  const dark = !!(cur && cur.light);
+  orderOverlay.classList.toggle('tone-dark', dark);
+  if (glow) orderOverlay.style.setProperty('--glow', dark ? '#33406b' : glow);
+  if (base) orderOverlay.style.setProperty('--base', dark ? '#1b2340' : base);
  
   updateTotals();
 }

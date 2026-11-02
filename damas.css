@@ -163,6 +163,7 @@ body{
     /* width: 40%; */
     flex: 0 1 auto;
     width: clamp(260px, 36vw, 550px);
+    height: clamp(260px, 34vw, 440px);   /* صندوق ثابت: لا يتغير حجم الصفحة مهما كانت أبعاد صورة المنتج */
     display: flex;
     justify-content: center;
 }
@@ -170,6 +171,8 @@ body{
 .imgs img{
     width: 100%;
     display: block;
+    height: 100%;
+    object-fit: contain;                 /* الصورة تُعرض كاملة داخل الصندوق الثابت */
     filter: drop-shadow(0 25px 30px rgba(0, 0, 0, 0.3));
     animation: xxxxx 2s ease-in-out infinite;
 }
@@ -348,118 +351,158 @@ body{
  
  
 /* ========== التاب والجوال: ترتيب عمودي ========== */
- 
+
 @media (max-width: 900px){
- 
+
     .safhaon{
         width: 92%;
         justify-content: flex-start;
         align-items: center;
         gap: 18px;
     }
- 
-    /* نجعل أبناء هذين القسمين عناصر مباشرة داخل .safhaon لنرتبهم كما نريد */
+
+    /* نفكّ هذه الصناديق لتصير عناصرها أبناءً مباشرين لـ .safhaon فنرتّبها كما نريد */
     .mohtaoa,
-    .thelsafhaon{
+    .thelsafhaon,
+    .text,
+    .maizat{
         display: contents;
     }
- 
+
+    /* الترتيب: الشريط العلوي ← صورة المنتج ← العنوان ← الشرح ← السعر ← الزر ← شريط المنتجات ← الميزات */
     .navbar{ order: 0; width: 100%; }
- 
-    /* الصورة الكبيرة ثم شريط الصور الصغيرة تحتها مباشرة لتبقى الحركة داخل الشاشة */
+
     /* صندوق ثابت للمنتج الكبير: أي صورة تُعرض كاملة داخله بنفس المساحة، فلا يتغير حجم الصفحة بين المنتجات */
-    .safhaon .imgs{ order: 1; width: min(90%, 550px); height: clamp(230px, 62vw, 400px); }
+    .safhaon .imgs{
+        order: 1;
+        width: min(100%, 560px);
+        height: clamp(260px, 76vw, 460px);
+        margin-top: 26px;                    /* مسافة بين الشريط العلوي وصورة المنتج */
+    }
     .imgs img{ height: 100%; object-fit: contain; }
- 
-    /* ارتفاع ثابت لشريط الصور الصغيرة أيضاً */
-    .icon{ height: clamp(58px, 16vw, 100px); }
-    .icon img{ height: 100%; object-fit: contain; }
-    .safhaon .carousel{
-        order: 2;
-        flex: none;
-        width: 100%;
-        max-width: 560px;
-    }
- 
-    .safhaon .text{
-        order: 3;
-        flex: none;
+
+    /* العنوان والشرح والسعر والميزات: بعرض الصفحة وعلى جهة اليمين */
+    .safhaon .text h1,
+    .safhaon .text p,
+    .safhaon .alsaer,
+    .safhaon .overlay{
         width: 100%;
         max-width: 620px;
-        text-align: center;
+        text-align: start;
     }
- 
-    .safhaon .maizat{
+
+    .safhaon .text h1{ order: 2; margin: -8px 0 0; }      /* المسافة بين الصورة والعنوان (قلّلها أو زِدها من هنا) */
+    .safhaon .text p{ order: 3; margin: 0; font-size: 13.5px; line-height: 1.9; }
+
+    /* السعر: القديم المشطوب يمين، والجديد يسار. بلا سعر قديم يبقى الجديد على اليمين */
+    .safhaon .alsaer{
         order: 4;
+        margin: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        font-size: clamp(24px, 7vw, 32px);
+    }
+    .safhaon .alsaer .kdem{ font-size: 0.7em; opacity: 0.85; }
+    .safhaon .alsaer .jaaded{ display: flex; align-items: baseline; gap: 8px; }
+    .safhaon .alsaer .jaaded span{ font-size: 13px; }
+
+    /* الزر بعد السعر (بدون تغيير في شكله) */
+    .safhaon .text button{ order: 5; align-self: center; margin: 16px 0; }
+
+    /* شريط المنتجات: بدون أسهم، يمرَّر باللمس، وكل صورة لها خلفية شفافة ضبابية */
+    .safhaon .carousel{
+        order: 6;
         flex: none;
         width: 100%;
         max-width: 620px;
-        text-align: center;
     }
- 
-    .alsaer{ margin-bottom: 20px; }
- 
+    .carousel .nav-btn{ display: none; }
+
+    .icon{
+        display: flex;
+        justify-content: flex-start;
+        align-items: stretch;
+        gap: 10px;
+        height: auto;
+        padding: 4px 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x proximity;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .icon::-webkit-scrollbar{ display: none; }
+
+    /* عرض الصورة = (العرض − الفراغات) ÷ 2.5 : صورتان كاملتان ونصف الثالثة للدلالة على التمرير */
+    .icon img{
+        flex: 0 0 calc((100% - 20px) / 2.5);
+        min-width: 0;
+        max-width: none;
+        height: auto;
+        aspect-ratio: 1 / 1;
+        object-fit: contain;
+        padding: 12px;
+        opacity: 1;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        scroll-snap-align: start;
+    }
+    .icon img:hover{ transform: none; z-index: auto; }
+
+    .safhaon .overlay{ order: 7; margin: 0; }
+
     .overlay ul{
         width: 100%;
         text-align: start;
     }
- 
-    .taosel{ order: 5; text-align: center; }
-    .tauasul{ order: 6; }
+
+    .taosel{ order: 8; text-align: center; }
+    .tauasul{ order: 9; }
 }
- 
+
 @media (max-width: 600px){
- 
-    .shamelll{padding-bottom:0 ;}
- 
+
+    .shamelll{ padding-bottom: 0; }
+
     .navbar{ justify-content: center; }
- 
+
     .navbar a{ font-size: 20px; }
 
-    .navbar ul{
-        margin-left: 10px;
-    }
- 
+    .navbar ul{ margin-left: 10px; }
+
     .navbar ul li a{
         font-size: 15px;
         margin: 0 4px;
     }
- 
-    .text p{ font-size: 15px; }
- 
+
     .text button{
         padding: 8px 40px;
         font-size: 18px;
     }
- 
-    .overlay ul li{ font-size: 15px;
-                    padding: 9px 12px;
-                     }
- 
-     .overlay ul{ margin: 30px 0;
- 
-        }
- 
-    .taosel p{ font-size: 16px;
-                margin: 30px 0 ; }
- 
+
+    .overlay ul li{
+        font-size: 15px;
+        padding: 9px 12px;
+    }
+
+    .taosel p{
+        font-size: 16px;
+        margin: 30px 0;
+    }
+
     .tauasul a i{
         font-size: 22px;
         margin: 0 12px;
         display: none;
     }
- 
-    .nav-btn{
-        width: 30px;
-        height: 30px;
-        font-size: 17px;
-    }
- 
-    .carousel,
-    .icon{ gap: 5px; }
 }
- 
- 
+
+
 /* حركة الانميشن الخاصة بالصورة */
  
  
@@ -480,59 +523,6 @@ body{
   50% {
     opacity: 0.5;
   }
-}
- 
- 
-/* ========== الجوال: زر اطلب الان تحت السعر ========== */
- 
-@media (max-width: 600px){
- 
-    /* نفكّ صندوقي النص حتى نرتّب عناصرهما مباشرة داخل الصفحة */
-    .safhaon .text,
-    .safhaon .maizat{
-        display: contents;
-    }
- 
-    .safhaon .text h1{ order: 3; }
-    .safhaon .text p{ order: 4; }
-    .safhaon .alsaer{ order: 5; }
-    .safhaon .text button{ order: 6; align-self: center; }   /* الزر تحت السعر */
-    .safhaon .overlay{ order: 7; }
-    .safhaon .taosel{ order: 8; }
-    .safhaon .tauasul{ order: 9; }
- 
-    .safhaon .text h1,
-    .safhaon .text p,
-    .safhaon .alsaer,
-    .safhaon .overlay{
-        width: 100%;
-        max-width: 620px;
-        text-align: center;
-    }
- 
-    /* المسافات بين العناصر يتحكم بها gap الصفحة، فنلغي الهوامش المضاعفة */
-    .safhaon .text h1,
-    .safhaon .text p,
-    .safhaon .text button,
-    .safhaon .alsaer,
-    .safhaon .overlay ul{
-        margin: 0;
-    }
- 
-    /* العنوان بعيد عن الصور وعمودياً حتى لا يتداخل معها */
-    .safhaon .text h1{
-        margin-top: 28px;
-    }
- 
-    /* نص الشرح أضيق من عرض الشاشة */
-    .safhaon .text p{
-        width: min(100%, 400px);
-    }
- 
-    /* مسافة فوق الزر وتحته */
-    .safhaon .text button{
-        margin: 16px 0;
-    }
 }
  
  
@@ -1154,4 +1144,55 @@ html.intro-pending .text button{ animation: none; }
     .spinner{ animation-duration: 2s; }
     .offer-badge{ animation: none; }
 }
- 
+
+/* ========== سعر قديم غير موجود ========== */
+
+.alsaer .kdem:empty{ display: none; }
+
+
+/* ========== خلفيات فاتحة (الألوان الاحتياطية): نصوص غامقة هادئة ========== */
+
+.shamelll.light{ --ink: #1f2433; }
+
+.shamelll.light .navbar a,
+.shamelll.light .text h1,
+.shamelll.light .text p,
+.shamelll.light .alsaer,
+.shamelll.light .overlay ul li,
+.shamelll.light .tauasul a i,
+.shamelll.light .taosel p{
+    color: var(--ink);
+}
+
+.shamelll.light .navbar ul li a::after{ background: var(--ink); }
+
+.shamelll.light .overlay ul li{
+    background: rgba(31, 36, 51, 0.06);
+    border-color: rgba(31, 36, 51, 0.12);
+}
+
+.shamelll.light .overlay ul li::before{ background: var(--ink); }
+
+.shamelll.light .text button{
+    background: var(--ink);
+    color: #fff;
+}
+
+.shamelll.light .icon img{
+    background: rgba(31, 36, 51, 0.06);
+    border-color: rgba(31, 36, 51, 0.12);
+}
+
+.shamelll.light .nav-btn{
+    background: rgba(31, 36, 51, 0.12);
+    color: var(--ink);
+}
+
+.shamelll.light .offer-badge{
+    color: #fff;
+    background: var(--ink);
+}
+
+/* طبقة الطلب فوق خلفية فاتحة: نجعلها غامقة حتى تبقى النصوص البيضاء مقروءة */
+.maalomataltalab.tone-dark{ background: rgba(20, 26, 50, 0.82); }
+.maalomataltalab.tone-dark .order-form{ background: rgba(255, 255, 255, 0.1); }

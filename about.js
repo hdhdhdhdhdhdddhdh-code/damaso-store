@@ -19,8 +19,9 @@
  
   function syncColors() {
     const cs = getComputedStyle(bg);
-    const glow = cs.getPropertyValue('--glow').trim();
-    const base = cs.getPropertyValue('--base').trim();
+    // عند الخلفيات الفاتحة يوفّر damas.js لوناً مميِّزاً (--acc-*) لأن الأبيض لا يصلح للنصوص هنا
+    const glow = cs.getPropertyValue('--acc-glow').trim() || cs.getPropertyValue('--glow').trim();
+    const base = cs.getPropertyValue('--acc-base').trim() || cs.getPropertyValue('--base').trim();
     // القسم وزر الأعلى والفوتر كلها تأخذ لون خلفية المنتج المعروض
     [about, toTop, footer].forEach(el => {
       if (!el) return;
@@ -130,4 +131,3 @@
     document.querySelectorAll('.rv').forEach(reveal);
   }
 })();
- 
