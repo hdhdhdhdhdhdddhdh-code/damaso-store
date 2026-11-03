@@ -458,10 +458,10 @@ function updateStrip(newCur, clickedEl, lateIndex = -1) {
     idxList.push(current);
   }
   // الجوال أبطأ وأهدأ: الانزلاق يبدأ بعد أن تبتعد الصورة الطائرة، والصورة الجديدة تظهر بعده
-  const slideMs    = small ? 1000 : STRIP_MS;
-  const slideDelay = small ? 250 : 100;
+  const slideMs    = small ? 1000 : STRIP_MS;   // مدة انزلاق الصور لتسد الفراغ
+  const slideDelay = small ? 450 : 100;    // تبدأ بعد أن يختفي إطار الصورة المضغوطة تماماً (حتى لا تعلو الصور بعضها)
   const freshMs    = small ? 800 : STRIP_MS;
-  const freshDelay = small ? 550 : 150;
+  const freshDelay = small ? 800 : 150;
 
   const ordered = idxList.map(pi => {
     const old = byIndex.get(pi);
@@ -525,7 +525,8 @@ function updateStrip(newCur, clickedEl, lateIndex = -1) {
         webkitBackdropFilter: cs.backdropFilter
       });
       document.body.appendChild(frame);
-      frame.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 600, easing: 'ease-out', fill: 'forwards' })
+      frame.dataset.fade = '1';
+      frame.animate([{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(0.88)' }], { duration: 380, easing: 'ease-in', fill: 'forwards' })
         .finished.then(() => frame.remove(), () => frame.remove());
     }
   }

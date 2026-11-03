@@ -429,7 +429,6 @@ body{
         padding: 4px 0;
         overflow-x: auto;
         overflow-y: hidden;
-        scroll-snap-type: x proximity;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
     }
@@ -450,7 +449,6 @@ body{
         border: 1px solid rgba(255, 255, 255, 0.12);
         -webkit-backdrop-filter: blur(10px);
         backdrop-filter: blur(10px);
-        scroll-snap-align: start;
     }
     .icon img:hover{ transform: none; z-index: auto; }
 
@@ -1178,9 +1176,12 @@ html.intro-pending .text button{ animation: none; }
     color: #fff;
 }
 
-.shamelll.light .icon img{
-    background: rgba(31, 36, 51, 0.06);
-    border-color: rgba(31, 36, 51, 0.12);
+/* إطار الصور الصغيرة موجود في الجوال والتاب فقط، فلا نلوّنه في الشاشات الكبيرة حتى تبقى الصور مفرّغة بلا خلفية */
+@media (max-width: 900px){
+    .shamelll.light .icon img{
+        background: rgba(31, 36, 51, 0.06);
+        border-color: rgba(31, 36, 51, 0.12);
+    }
 }
 
 .shamelll.light .nav-btn{
