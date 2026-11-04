@@ -11,7 +11,7 @@
 }
  
 body{
-    background: #0000c8;
+    /* background: #0000c8; */
     overflow-x: hidden;
 }
  
@@ -168,7 +168,7 @@ body{
     justify-content: center;
 }
  
-.imgs img{
+.imgs > img{
     width: 100%;
     display: block;
     height: 100%;
@@ -379,7 +379,7 @@ body{
         height: clamp(260px, 76vw, 460px);
         margin-top: 26px;                    /* مسافة بين الشريط العلوي وصورة المنتج */
     }
-    .imgs img{ height: 100%; object-fit: contain; }
+    .imgs > img{ height: 100%; object-fit: contain; }
 
     /* العنوان والشرح والسعر والميزات: بعرض الصفحة وعلى جهة اليمين */
     .safhaon .text h1,
@@ -535,9 +535,10 @@ body{
     inset: 0;
     z-index: 100;
     display: flex;
+    align-items: flex-start;   /* الصفحة تأخذ طول محتواها (وحدّها الأدنى طول الشاشة) فتنزلق الطبقة بدل أن يفيض النموذج ويلتصق بالأسفل */
     overflow-y: auto;
     font-family: 'Cairo', sans-serif;
- 
+
     /* احتياطي للمتصفحات القديمة التي لا تدعم color-mix */
     background: rgba(0, 0, 40, 0.72);
     /* لون المنتج نفسه بشفافية: توهج خفيف في الجانبين وحواف أغمق */
@@ -578,7 +579,8 @@ body.no-scroll{
     min-height: 100vh;
     min-height: 100svh;
     margin: 0 auto;
-    padding: 15px 0 24px;
+    /* هامش سفلي كافٍ حتى لا يلتصق النموذج بأسفل الصفحة مهما طال (حقل العنوان زاد طوله) */
+    padding: 15px 0 calc(56px + env(safe-area-inset-bottom, 0px));
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -990,7 +992,9 @@ body.no-scroll{
 }
  
 @media (max-width: 800px){
- 
+
+    .order-page{ padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+
     .order-box{ align-items: flex-start; }
  
     .order-layout{
@@ -1188,6 +1192,69 @@ html.intro-pending .text button{ animation: none; }
     background: rgba(31, 36, 51, 0.12);
     color: var(--ink);
 }
+
+/* ========== معرض صور المنتج (زوايا مختلفة) ========== */
+
+.gallery{
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    z-index: 4;
+    display: flex;
+    gap: 8px;
+    max-width: 100%;
+    padding: 6px 8px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    transition: opacity 0.3s ease;
+}
+
+.gallery[hidden]{ display: none; }
+.gallery.fade{ opacity: 0; pointer-events: none; }
+
+.g-thumb{
+    flex: none;
+    width: 46px;
+    height: 46px;
+    padding: 3px;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid transparent;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s, border-color 0.3s, transform 0.2s;
+}
+
+.g-thumb img{
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+.g-thumb.active{ opacity: 1; border-color: #fff; }
+.g-thumb:active{ transform: scale(0.92); }
+
+@media (hover: hover){
+    .g-thumb:hover{ opacity: 1; }
+}
+
+@media (max-width: 600px){
+    .g-thumb{ width: 40px; height: 40px; border-radius: 10px; }
+    .gallery{ gap: 6px; padding: 5px 6px; }
+}
+
+.shamelll.light .gallery{
+    background: rgba(31, 36, 51, 0.08);
+    border-color: rgba(31, 36, 51, 0.14);
+}
+.shamelll.light .g-thumb{ background: rgba(31, 36, 51, 0.06); }
+.shamelll.light .g-thumb.active{ border-color: var(--ink); }
 
 .shamelll.light .offer-badge{
     color: #fff;

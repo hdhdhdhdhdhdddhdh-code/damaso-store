@@ -3,7 +3,8 @@
    فالمنتجات كلها في ملف products.js
    ===================================================== */
  
-const main      = document.querySelector('.imgs img');    // صورة المنتج في الوسط
+const main      = document.querySelector('.imgs > img');  // صورة المنتج في الوسط
+const gallery   = document.getElementById('gallery');     // صور المنتج المصغّرة (زوايا مختلفة)
 const bg        = document.querySelector('.shamelll');    // خلفية الصفحة
 const wave      = document.querySelector('.bg-wave');     // الطبقة التي تتسع من الوسط
 const strip     = document.querySelector('.icon');        // شريط الصور الصغيرة
@@ -342,7 +343,21 @@ function isLightBg(glow, base) {
   return brightness(glow) * 0.35 + brightness(base) * 0.65 > 0.62;
 }
 
-function buildProduct(item, index, img) {
+// كل مصادر صور المنتج بالترتيب: src (إن وُجد) ثم images. الأولى هي الصورة الرئيسية
+function sourcesOf(item) {
+  if (typeof item === 'string') return [item];
+  if (!item) return [];
+  const list = [];
+  if (item.src) list.push(String(item.src));
+  if (Array.isArray(item.images)) {
+    item.images.forEach(s => { if (s && !list.includes(String(s))) list.push(String(s)); });
+  }
+  return list;
+}
+
+// imgs: كل الصور المحمّلة بنجاح للمنتج (الأولى رئيسية)
+function buildProduct(item, index, imgs) {
+  const img = imgs[0];
   const o = typeof item === 'string' ? { src: item } : item;
   let glow = o.glow, base = o.base, accent = null;
 
@@ -357,8 +372,88 @@ function buildProduct(item, index, img) {
     accent = f.accent;
   }
   const light = isLightBg(glow, base);
-  return { url: img.src, img, glow, base, light, accent: light ? (accent || LIGHT_ACCENT) : null, text: normalizeText(o) };
+  return {
+    url: img.src, img,
+    images: imgs.map(im => ({ url: im.src, img: im })),
+    glow, base, light,
+    accent: light ? (accent || LIGHT_ACCENT) : null,
+    text: normalizeText(o)
+  };
 }
+
+
+/* ---------- معرض صور المنتج (الزوايا المختلفة) ---------- */
+
+let view = 0;          // رقم الصورة المعروضة حالياً من صور المنتج الحالي
+let viewAnim = null;
+
+function renderGallery(p) {
+  if (!gallery) return;
+  gallery.replaceChildren();
+  if (!p || p.images.length < 2) { gallery.hidden = true; return; }
+  p.images.forEach((im, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'g-thumb' + (i === view ? ' active' : '');
+    b.setAttribute('aria-label', 'عرض الصورة ' + (i + 1) + ' من ' + p.images.length);
+    const t = document.createElement('img');
+    t.src = im.url;
+    t.alt = '';
+    t.draggable = false;
+    b.appendChild(t);
+    b.addEventListener('click', () => setView(i));
+    gallery.appendChild(b);
+  });
+  gallery.hidden = false;
+}
+
+function markActiveThumb() {
+  if (!gallery) return;
+  [...gallery.children].forEach((b, i) => b.classList.toggle('active', i === view));
+}
+
+function setView(i) {
+  if (busy) return;
+  const p = products[current];
+  if (!p || !p.images[i] || i === view) return;
+  view = i;
+  main.src = p.images[i].url;
+  markActiveThumb();
+  if (viewAnim) viewAnim.cancel();
+  viewAnim = main.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 350, easing: 'ease-out' });
+}
+
+function stepView(d) {
+  const p = products[current];
+  if (!p || p.images.length < 2) return;
+  const n = p.images.length;
+  setView((view + d + n) % n);
+}
+
+// بعد الانتقال إلى منتج: نعرض صورته الأولى ونبني صوره المصغّرة
+function showGallery() {
+  view = 0;
+  renderGallery(products[current]);
+  if (gallery) gallery.classList.remove('fade');
+}
+
+// السحب باللمس على صورة المنتج للتنقل بين زواياه
+(function enableSwipe() {
+  const box = document.querySelector('.imgs');
+  if (!box) return;
+  let sx = 0, sy = 0, tracking = false;
+  box.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) { tracking = false; return; }
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY; tracking = true;
+  }, { passive: true });
+  box.addEventListener('touchend', e => {
+    if (!tracking) return;
+    tracking = false;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.5) stepView(dx < 0 ? 1 : -1);
+  }, { passive: true });
+})();
 
 function setBackground(p) {
   bg.style.setProperty('--glow', p.glow);
@@ -646,6 +741,11 @@ async function goTo(index, thumb) {
   if (busy || index === current || !products[index]) return;
   busy = true;
 
+  // نخفي الصور المصغّرة، ونعيد صورة المنتج الحالي إلى الأولى قبل بدء الحركة
+  if (viewAnim) { viewAnim.cancel(); viewAnim = null; }
+  if (gallery) gallery.classList.add('fade');
+  if (view !== 0) { view = 0; main.src = products[current].url; }
+
   const next  = products[index];
   const prev  = products[current];
   const back  = !thumb;
@@ -733,6 +833,7 @@ async function goTo(index, thumb) {
 
     current = index;
     updateGlowCenter();
+    showGallery();
 
     // ننتظر انتهاء بقية الحركات: النصوص والشريط
     await Promise.all([textPromise, stripPromise]);
@@ -741,6 +842,7 @@ async function goTo(index, thumb) {
   } finally {
     // مهما حصل: نفتح القفل ونزيل الصورة الطائرة
     if (flyer) flyer.remove();
+    showGallery();
     busy = false;
   }
 }
@@ -764,9 +866,18 @@ async function initCore() {
     return;
   }
  
-  const results = await Promise.allSettled(list.map(item => {
-    const src = typeof item === 'string' ? item : item && item.src;
-    return src ? loadImage(src) : Promise.reject(new Error('منتج بدون مسار صورة (src)'));
+  // نحمّل كل صور كل منتج؛ الصورة التي لا تُحمَّل تُتجاهل، والمنتج الذي لا تُحمَّل له أي صورة يُتجاهل
+  const results = await Promise.allSettled(list.map(async item => {
+    const srcs = sourcesOf(item);
+    if (!srcs.length) throw new Error('منتج بدون صور (src أو images)');
+    const loaded = await Promise.allSettled(srcs.map(loadImage));
+    const ok = [];
+    loaded.forEach(r => {
+      if (r.status === 'fulfilled') ok.push(r.value);
+      else console.warn('تم تجاهل صورة:', r.reason.message);
+    });
+    if (!ok.length) throw new Error('لا توجد أي صورة صالحة لهذا المنتج');
+    return ok;
   }));
  
   results.forEach((res, i) => {
@@ -781,6 +892,7 @@ async function initCore() {
   setBackground(products[0]);
   applyText(products[0]);
   renderStrip();
+  showGallery();
   lockLayoutHeight();
   updateGlowCenter();
 }
@@ -912,6 +1024,7 @@ const orderForm    = document.getElementById('orderForm');
 const fName        = document.getElementById('fName');
 const fGov         = document.getElementById('fGov');
 const fCity        = document.getElementById('fCity');
+const fAddress     = document.getElementById('fAddress');
 const qtyVal       = document.getElementById('qtyVal');
 const orderOk      = document.getElementById('orderOk');
  
@@ -965,7 +1078,7 @@ function readPrice() {
 }
  
 function fillSummary() {
-  document.getElementById('sumImg').src = main.src;
+  document.getElementById('sumImg').src = (products[current] && products[current].url) || main.src;
   document.getElementById('sumName').textContent = els.name ? els.name.textContent : '';
   document.getElementById('sumOld').textContent  = els.oldPrice ? els.oldPrice.textContent : '';
   document.getElementById('sumNew').textContent  = els.price ? els.price.textContent : '';
@@ -1021,10 +1134,19 @@ function validateOrder() {
   const okPhone = checkPhone();
   const okGov   = setFieldError(fGov,  fGov.value ? '' : 'اختر المحافظة');
   const okCity  = setFieldError(fCity, fCity.value.trim().length >= 2 ? '' : 'اكتب اسم بلدتك أو مدينتك أو قريتك');
-  return okName && okPhone && okGov && okCity;
+  const okAddr  = setFieldError(fAddress, fAddress.value.trim().length >= 5 ? '' : 'اكتب عنوانك بالتفصيل (الحي، الشارع، أقرب نقطة دلالة)');
+  const all = okName && okPhone && okGov && okCity && okAddr;
+
+  // النموذج طويل على الجوال: نمرّر إلى أول حقل فيه خطأ حتى يراه المستخدم
+  if (!all) {
+    const first = !okName ? fName : !okPhone ? document.getElementById('x')
+                : !okGov ? fGov : !okCity ? fCity : fAddress;
+    first.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+  return all;
 }
- 
-[fName, fGov, fCity].forEach(el =>
+
+[fName, fGov, fCity, fAddress].forEach(el =>
   el.addEventListener('input', () => setFieldError(el, ''))
 );
  
@@ -1043,6 +1165,7 @@ function buildWhatsAppUrl(o) {
     'الهاتف: ' + o.phoneDisplay,
     'المحافظة: ' + o.governorate,
     'البلد/المدينة/القرية: ' + o.city,
+    'العنوان: ' + o.address,
     'الدفع: عند الاستلام'
   ];
   return 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(lines.join('\n'));
@@ -1061,7 +1184,8 @@ function buildSmsUrl(o) {
     'الاسم: ' + o.name,
     'الهاتف: ' + o.phoneDisplay,
     'المحافظة: ' + o.governorate,
-    'البلد/المدينة/القرية: ' + o.city
+    'البلد/المدينة/القرية: ' + o.city,
+    'العنوان: ' + o.address
   ];
   return 'sms:' + SMS_NUMBER + '?&body=' + encodeURIComponent(lines.join('\n'));
 }
@@ -1080,6 +1204,7 @@ orderForm.addEventListener('submit', e => {
     phoneDisplay: getFinalPhone(),
     governorate:  fGov.value,
     city:         fCity.value.trim(),
+    address:      fAddress.value.trim(),
     product:      els.name ? els.name.textContent.trim() : '',
     quantity:     orderQty,
     totalUsd:     usd,

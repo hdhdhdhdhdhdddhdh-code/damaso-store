@@ -60,6 +60,8 @@
                 <div class="imgs">
                     <!-- يضبطها الـ JS تلقائياً على أول منتج في products.js -->
                     <img class="asd" src="imgs/01.png" alt="المنتج">
+                    <!-- صور المنتج المصغّرة (زوايا مختلفة): يملؤها الـ JS من images في products.js، وتختفي إن كان للمنتج صورة واحدة -->
+                    <div class="gallery" id="gallery" dir="ltr" hidden></div>
                     <!-- شارة العرض: تظهر فقط للمنتجات التي فيها offer: true في products.js -->
                     <div class="offer-badge" id="offerBadge" hidden>
                         <small class="ob-label">عرض خاص</small>
@@ -299,6 +301,12 @@
                     </div>
  
                     <div class="field">
+                        <label for="fAddress">العنوان التفصيلي</label>
+                        <input type="text" id="fAddress" autocomplete="street-address" maxlength="150" placeholder="الحي، الشارع، البناء، أقرب نقطة دلالة">
+                        <small class="err"></small>
+                    </div>
+
+                    <div class="field">
                         <label>الكمية</label>
                         <div class="qty">
                             <!-- الأول ناقص (−) والثاني زائد (+) -->
@@ -330,4 +338,3 @@
     <script src="about.js"></script>
 </body>
 </html>
- 
