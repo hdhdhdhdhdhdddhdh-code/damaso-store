@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DAMAS</title>
+    <title>DAMASO</title>
     <link rel="stylesheet" href="damas.css">
     <link rel="stylesheet" href="about.css">
     <link rel="stylesheet" href="footer.css">
@@ -29,53 +29,53 @@
 
     <!-- لودر إعادة التحميل -->
     <div class="page-loader" id="pageLoader" aria-hidden="true"><div class="spinner"></div></div>
- 
+
     <div class="shamelll" id="home">
- 
+
         <!-- طبقة الخلفية التي تتسع من وسط المنتج عند تغيير اللون -->
         <div class="bg-wave"></div>
- 
+
         <div class="safhaon">
- 
+
             <div class="navbar">
                 <ul>
                     <li><a href="index.html" data-reload>الرئيسية</a></li>
                     <li><a href="#about" data-scroll="about">من نحن</a></li>
-                    <li><a href="https://wa.me/213666143702">تواصل معنا</a></li>
+                    <li><a href="https://wa.me/963931493129" data-contact>تواصل معنا</a></li>
                 </ul>
- 
+
                 <a href="index.html" class="logo">DAMASO</a>
             </div>
- 
+
             <div class="mohtaoa">
- 
+
                 <div class="text">
                     <h1>نظارات نسائية متغيرة اللون للنهار والليل</h1>
- 
+
                     <p>تدرّج أزرق هادئ وتصميم بدون إطار. عدسات خفيفة تعطيكِ إطلالة أنيقة من أول نظرة، وتناسب الشمس والسهرة معاً</p>
- 
+
                     <button class="atlopalan">اطلب الان</button>
                 </div>
- 
+
                 <div class="imgs">
-                    <!-- يضبطها الـ JS تلقائياً على أول منتج في products.js -->
+                    <!-- يضبطها الـ JS تلقائياً على أول منتج منشور في لوحة التحكم -->
                     <img class="asd" src="imgs/01.png" alt="المنتج">
-                    <!-- صور المنتج المصغّرة (زوايا مختلفة): يملؤها الـ JS من images في products.js، وتختفي إن كان للمنتج صورة واحدة -->
-                    <div class="gallery" id="gallery" dir="ltr" hidden></div>
-                    <!-- شارة العرض: تظهر فقط للمنتجات التي فيها offer: true في products.js -->
+                    <!-- الصور المصغّرة لبقية زوايا المنتج: يملؤها الـ JS من لوحة التحكم، لا تضف صوراً هنا -->
+                    <div class="gallery" id="gallery" hidden></div>
+                    <!-- شارة العرض: تظهر فقط للمنتجات التي كتب لها المشرف نص عرض -->
                     <div class="offer-badge" id="offerBadge" hidden>
                         <small class="ob-label">عرض خاص</small>
                         <b class="ob-text"></b>
                     </div>
                 </div>
- 
+
                 <div class="maizat">
- 
+
                     <div class="alsaer">
-                        <p class="kdem">25$</p>
+                        <p class="kdem"></p>
                         <p class="jaaded"><strong class="price">20$</strong> <span>شاملة لاجور الشحن</span></p>
                     </div>
- 
+
                     <div class="overlay">
                         <ul>
                             <li>حماية من الأشعة فوق البنفسجية UV400</li>
@@ -85,52 +85,52 @@
                             <li>مناسبة للقيادة والسفر والاستخدام اليومي</li>
                         </ul>
                     </div>
- 
+
                 </div>
- 
+
             </div>
- 
+
             <div class="thelsafhaon">
- 
+
+                <!-- أيقونات التواصل: تُدار من لوحة التحكم (الصفحة الرئيسية) -->
                 <div class="tauasul">
-                    <a href="https://www.facebook.com/profile.php?id=61590749053674&name=xhp_nt__fb__action__open_user"><i class='bx bxl-facebook'></i></a>
-                    <a href="https://www.instagram.com/damasosy/"><i class='bx bxl-instagram'></i></a>
-                    <a href="https://wa.me/213666143702"><i class='bx bxl-whatsapp'></i></a>
-                    <!-- <a href="#"><i class='bx bxl-messenger'></i></a> -->
+                    <a href="https://www.facebook.com/profile.php?id=61590749053674&name=xhp_nt__fb__action__open_user" target="_blank" rel="noopener" aria-label="فيسبوك"><i class='bx bxl-facebook'></i></a>
+                    <a href="https://www.instagram.com/damasosy/" target="_blank" rel="noopener" aria-label="انستغرام"><i class='bx bxl-instagram'></i></a>
+                    <a href="https://wa.me/963931493129" target="_blank" rel="noopener" aria-label="واتساب"><i class='bx bxl-whatsapp'></i></a>
                 </div>
- 
+
                 <div class="taosel">
                     <p>من متجرنا إلى بابك</p>
                 </div>
- 
-                <!-- شريط المنتجات: تملؤه الجافاسكربت من products.js، لا تضف صوراً هنا -->
+
+                <!-- شريط المنتجات: تملؤه الجافاسكربت من المنتجات المنشورة، لا تضف صوراً هنا -->
                 <div class="carousel">
                     <button class="nav-btn prev" type="button" aria-label="المنتج السابق"><i class='bx bxs-chevron-right'></i></button>
                     <div class="icon"></div>
                     <button class="nav-btn next" type="button" aria-label="المنتج التالي"><i class='bx bxs-chevron-left'></i></button>
                 </div>
- 
+
             </div>
- 
+
         </div>
     </div>
- 
- 
+
+
 <!-- ================= قسم من نحن ================= -->
 <section class="about" id="about">
     <div class="about-inner">
         <div class="about-grid">
- 
+
             <!-- الصور (يمين) -->
             <div class="about-media rv from-right">
                 <div class="img-main"><img src="imgs/oijeorieojrie.jpg" alt="متجر DAMASO" loading="lazy"></div>
             </div>
- 
+
             <!-- النصوص (يسار) -->
             <div class="about-text rv from-left" style="--d:.15s">
                 <div class="about-tag">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
-                    من نحن
+                    <span id="abTag">من نحن</span>
                 </div>
                 <div class="about-brand">DAMASO</div>
                 <h2><span class="h-store">متجر إلكتروني</span> <em>يوصل طلبك حتى باب بيتك</em></h2>
@@ -138,7 +138,7 @@
                     في DAMASO نؤمن أن التسوق يجب أن يكون سهلاً وآمناً وممتعاً. نقدّم لك منتجات مختارة بعناية بجودة عالية وسعر مناسب،
                     ونتولى توصيل طلبك إلى منزلك في مختلف المحافظات مع الدفع عند الاستلام، لتستلم ما تحب وأنت مرتاح في مكانك.
                 </p>
- 
+
                 <div class="features">
                     <div class="feature">
                         <div class="f-icon">
@@ -161,7 +161,7 @@
                 </div>
             </div>
         </div>
- 
+
         <!-- العدادات -->
         <div class="counters rv" style="--d:.1s">
             <div class="counter"><div class="num" data-count="5200">0</div><div class="lbl">إجمالي الطلبات</div></div>
@@ -171,63 +171,63 @@
         </div>
     </div>
 </section>
- 
+
 <!-- ================= الفوتر ================= -->
 <footer class="footer" id="footer">
     <div class="footer-inner rv">
- 
+
         <a href="#home" data-scroll="top" class="f-logo">
             DAMASO
             <small>ONLINE STORE</small>
         </a>
- 
+
         <ul class="f-nav">
             <li><a href="#home" data-scroll="top">الرئيسية</a></li>
             <li><a href="#about" data-scroll="about">من نحن</a></li>
             <li><a href="#home" data-scroll="top">المنتجات</a></li>
-            <li><a href="https://wa.me/963931493129" target="_blank" rel="noopener">تواصل معنا</a></li>
+            <li><a href="https://wa.me/963931493129" target="_blank" rel="noopener" data-contact>تواصل معنا</a></li>
         </ul>
- 
+
+        <!-- تُدار الأيقونات من لوحة التحكم (الصفحة الرئيسية) -->
         <div class="f-social">
-            <a href="https://www.facebook.com/profile.php?id=61590749053674&name=xhp_nt__fb__action__open_user" aria-label="فيسبوك"><i class='bx bxl-facebook'></i></a>
-            <a href="https://www.instagram.com/damasosy/" aria-label="انستغرام"><i class='bx bxl-instagram'></i></a>
+            <a href="https://www.facebook.com/profile.php?id=61590749053674&name=xhp_nt__fb__action__open_user" target="_blank" rel="noopener" aria-label="فيسبوك"><i class='bx bxl-facebook'></i></a>
+                    <a href="https://www.instagram.com/damasosy/" target="_blank" rel="noopener" aria-label="انستغرام"><i class='bx bxl-instagram'></i></a>
             <a href="https://wa.me/963931493129" target="_blank" rel="noopener" aria-label="واتساب"><i class='bx bxl-whatsapp'></i></a>
-            <!-- <a href="#" aria-label="ميتا"><i class='bx bxl-meta'></i></a> -->
         </div>
- 
+
         <p class="f-copy">
-            طلبك يصلك لباب بيتك والدفع عند الاستلام، نختار منتجاتنا بعناية لنضمن لك رضاك.<br>
+            <span id="fText">طلبك يصلك لباب بيتك والدفع عند الاستلام، نختار منتجاتنا بعناية لنضمن لك رضاك.</span><br>
             © 2026 DAMASO. جميع الحقوق محفوظة.
         </p>
     </div>
 </footer>
- 
+
 <!-- زر العودة للأعلى -->
 <button class="to-top" id="toTop" type="button" aria-label="العودة للأعلى"><i class='bx bx-chevron-up'></i></button>
- 
- 
+
+
 <!-- ================= طبقة الطلب ================= -->
 <div class="maalomataltalab" id="orderOverlay" aria-hidden="true">
     <div class="order-page">
- 
+
         <!-- نفس الشريط العلوي، و"من نحن" تغلق الطبقة وتنزل لقسم من نحن -->
         <div class="navbar">
             <ul>
                 <li><a href="#">الرئيسية</a></li>
                 <li><a href="#about" data-scroll="about">من نحن</a></li>
-                <li><a href="#">تواصل معنا</a></li>
+                <li><a href="https://wa.me/963931493129" data-contact>تواصل معنا</a></li>
             </ul>
- 
+
             <a href="index.html" class="logo">DAMASO</a>
         </div>
- 
+
         <div class="order-box" role="dialog" aria-modal="true" aria-labelledby="orderTitle">
             <div class="order-layout">
- 
+
                 <!-- ===== ملخص الطلب (يسار) ===== -->
                 <aside class="order-summary">
                     <div class="sum-img"><img id="sumImg" alt=""></div>
- 
+
                     <div class="sum-info">
                         <h3 id="sumName"></h3>
                         <div class="sum-price">
@@ -236,7 +236,7 @@
                         </div>
                         <p class="sum-ship">شامل أجور الشحن</p>
                     </div>
- 
+
                     <ul class="sum-badges">
                         <li>
                             <span class="ic"><i class='bx bxs-wallet'></i></span>
@@ -252,29 +252,30 @@
                         </li>
                     </ul>
                 </aside>
- 
+
                 <!-- ===== نموذج التعبئة (يمين) ===== -->
                 <form class="order-form" id="orderForm" novalidate>
                     <button class="order-close" type="button" aria-label="إغلاق"></button>
                     <h2 id="orderTitle">أكمل بيانات طلبك</h2>
- 
+
                     <div class="field">
                         <label for="fName">الاسم الكامل</label>
                         <input type="text" id="fName" autocomplete="name" placeholder="مثال: أحمد محمد">
                         <small class="err"></small>
                     </div>
- 
+
                     <div class="field">
                         <label for="x">رقم الهاتف</label>
                         <!-- يبنيها ملف phone.js (رمز سوريا + سهم القائمة)، ويجب أن يبقى الـ id هو x -->
                         <input id="x">
                     </div>
- 
-                    <div class="row-2">
-                        <div class="field">
+
+                    <!-- المحافظة (قائمة منسدلة) ثم العنوان بالتفصيل -->
+                    <div class="field-row">
+                        <div class="field field-gov">
                             <label for="fGov">المحافظة</label>
-                            <select id="fGov">
-                                <option value="" selected disabled>اختر المحافظة</option>
+                            <select id="fGov" autocomplete="address-level1">
+                                <option value="" selected disabled>اختر</option>
                                 <option>دمشق</option>
                                 <option>ريف دمشق</option>
                                 <option>حلب</option>
@@ -283,27 +284,20 @@
                                 <option>اللاذقية</option>
                                 <option>طرطوس</option>
                                 <option>إدلب</option>
-                                <option>درعا</option>
-                                <option>السويداء</option>
-                                <option>القنيطرة</option>
                                 <option>دير الزور</option>
                                 <option>الرقة</option>
                                 <option>الحسكة</option>
+                                <option>درعا</option>
+                                <option>السويداء</option>
+                                <option>القنيطرة</option>
                             </select>
                             <small class="err"></small>
                         </div>
- 
-                        <div class="field">
-                            <label for="fCity">البلد / المدينة / القرية</label>
-                            <input type="text" id="fCity" autocomplete="address-level2" placeholder="اكتب اسم بلدتك">
+                        <div class="field field-addr">
+                            <label for="fAddr">العنوان بالتفصيل</label>
+                            <textarea id="fAddr" rows="1" autocomplete="street-address" placeholder="المدينة، الحي، الشارع، أقرب نقطة دالة"></textarea>
                             <small class="err"></small>
                         </div>
-                    </div>
- 
-                    <div class="field">
-                        <label for="fAddress">العنوان التفصيلي</label>
-                        <input type="text" id="fAddress" autocomplete="street-address" maxlength="150" placeholder="الحي، الشارع، البناء، أقرب نقطة دلالة">
-                        <small class="err"></small>
                     </div>
 
                     <div class="field">
@@ -315,24 +309,27 @@
                             <button type="button" id="qtyPlus" class="q-plus" aria-label="زيادة"></button>
                         </div>
                     </div>
- 
+
                     <div class="totals">
                         <div><span>الإجمالي بالدولار</span><strong id="totUsd">0$</strong></div>
                         <div><span>الإجمالي بالليرة السورية</span><strong id="totSyp">0 ل.س</strong></div>
                     </div>
- 
+
+                    <p class="rate-note" id="rateNote"></p>
+
                     <button type="submit" class="order-submit">تأكيد الطلب</button>
-                    <p class="order-ok" id="orderOk" hidden>تم تجهيز طلبك في واتساب، اضغط «إرسال» هناك لإتمامه</p>
-                    <a class="sms-fallback" id="smsFallback" href="#" hidden>لا يعمل معك واتساب؟ أرسل الطلب برسالة SMS</a>
+                    <p class="order-ok" id="orderOk" hidden>تم استلام طلبك بنجاح، سنتواصل معك قريباً لتأكيده</p>
+                    <p class="order-err" id="orderErr" hidden></p>
                 </form>
- 
+
             </div>
         </div>
     </div>
 </div>
- 
-    <!-- الترتيب مهم: products.js ثم phone.js ثم damas.js ثم about.js -->
-    <script src="products.js"></script>
+
+    <!-- الترتيب مهم: config.js ثم store.js ثم phone.js ثم damas.js ثم about.js -->
+    <script src="config.js"></script>
+    <script src="store.js"></script>
     <script src="phone.js"></script>
     <script src="damas.js"></script>
     <script src="about.js"></script>
