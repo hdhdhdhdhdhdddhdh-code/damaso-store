@@ -1126,6 +1126,11 @@ body.no-scroll{
     }
 
     .order-form h2{ font-size: 22px; }
+    
+    .shamelll.light .icon img{
+    background: rgba(31, 36, 51, 0.06);
+    border-color: rgba(31, 36, 51, 0.12);
+}
 }
 
 
@@ -1271,10 +1276,7 @@ html.intro-pending .text button{ animation: none; }
     color: #fff;
 }
 
-.shamelll.light .icon img{
-    background: rgba(31, 36, 51, 0.06);
-    border-color: rgba(31, 36, 51, 0.12);
-}
+
 
 .shamelll.light .nav-btn{
     background: rgba(31, 36, 51, 0.12);
