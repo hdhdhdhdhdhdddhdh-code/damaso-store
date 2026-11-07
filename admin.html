@@ -149,6 +149,19 @@
                     </div>
                 </div>
 
+                <h3>صفحة الطلبات في Google Sheets <small>أين تُسجَّل طلبات هذا المنتج</small></h3>
+                <div class="row">
+                    <div class="f">
+                        <label for="pSheetSel">الصفحة (التبويب)</label>
+                        <select id="pSheetSel"></select>
+                    </div>
+                    <div class="f" id="sheetNewBox" hidden>
+                        <label for="pSheetNew">اسم الصفحة الجديدة</label>
+                        <input id="pSheetNew" maxlength="40" placeholder="مثال: النظارات">
+                    </div>
+                </div>
+                <small class="hint">تُنشأ الصفحة تلقائياً في الجدول عند وصول أول طلب. يمكن لعدة منتجات أن تشترك في صفحة واحدة.</small>
+
                 <h3>ألوان الصفحة <small>تتبدل الخلفية بهذه الألوان عند عرض المنتج</small></h3>
                 <div class="colors">
                     <label class="radio"><input type="radio" name="colorMode" value="default" checked> تلقائي (ألوان فاتحة هادئة)</label>

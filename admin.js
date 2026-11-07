@@ -213,6 +213,7 @@
     $('pOld').value = p && p.old_price ? Number(p.old_price) : '';
     $('pOfferText').value = p ? p.offer_text || '' : '';
     $('pOfferLabel').value = p ? p.offer_label || '' : '';
+    fillSheetOptions(p ? p.sheet_tab : '');
     $('pSlug').value = p ? p.slug : 'p-' + rand(6);
     $('pPublished').checked = p ? !!p.published : true;
     $('pFeatured').checked = p ? !!p.featured : !products.some(x => x.featured);
@@ -225,6 +226,22 @@
     $('listView').hidden = true; $('editView').hidden = false;
     window.scrollTo(0, 0);
   }
+
+  // --- صفحة الطلبات في Google Sheets ---
+  const DEFAULT_TAB = 'الطلبات';
+  const NEW_TAB = '__new__';
+  function fillSheetOptions(current) {
+    const names = [DEFAULT_TAB];
+    products.forEach(p => { if (p.sheet_tab && !names.includes(p.sheet_tab)) names.push(p.sheet_tab); });
+    if (current && !names.includes(current)) names.push(current);
+    const sel = $('pSheetSel');
+    sel.replaceChildren(...names.map(n => new Option(n, n)), new Option('＋ صفحة جديدة…', NEW_TAB));
+    sel.value = current || DEFAULT_TAB;
+    $('pSheetNew').value = '';
+    syncSheetUi();
+  }
+  function syncSheetUi() { $('sheetNewBox').hidden = $('pSheetSel').value !== NEW_TAB; }
+  $('pSheetSel').addEventListener('change', syncSheetUi);
 
   async function cancelEdit() {
     if (form && form.uploaded.length) await removeFiles(form.uploaded);   // صور رُفعت ولم تُحفظ
@@ -360,6 +377,11 @@
     if (old !== null && (!isFinite(old) || old <= 0)) return fail('السعر القديم غير صحيح');
     if (!/^[a-z0-9][a-z0-9-]{0,60}$/.test(slug)) return fail('رابط المنتج: حروف إنجليزية صغيرة وأرقام وشرطة فقط');
 
+    let sheetTab = $('pSheetSel').value;
+    if (sheetTab === NEW_TAB) sheetTab = $('pSheetNew').value.trim();
+    if (!sheetTab) return fail('اكتب اسم صفحة الطلبات الجديدة');
+    if (/[\[\]*?:\/\\]/.test(sheetTab)) return fail('اسم الصفحة لا يقبل الرموز: [ ] * ? : / \\');
+
     const custom = document.querySelector('input[name=colorMode]:checked').value === 'custom';
     const offerText = $('pOfferText').value.trim();
     const row = {
@@ -372,6 +394,7 @@
       base: custom ? $('pBase').value : null,
       offer_text: offerText || null,
       offer_label: offerText ? ($('pOfferLabel').value.trim() || null) : null,
+      sheet_tab: sheetTab,
       published: $('pPublished').checked,
       featured: $('pFeatured').checked
     };

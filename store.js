@@ -79,7 +79,8 @@ window.PRODUCTS = [];
         base: p.base || undefined,
         offer: p.offer_text || undefined,
         offerText: p.offer_text || undefined,
-        offerLabel: p.offer_label || undefined
+        offerLabel: p.offer_label || undefined,
+        sheet: p.sheet_tab || undefined      // صفحة الطلبات في Google Sheets
       };
     });
     PRODUCTS.splice(0, PRODUCTS.length, ...list);

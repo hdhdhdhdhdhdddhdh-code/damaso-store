@@ -428,7 +428,7 @@ function buildProduct(item, index, img) {
     accent = f.accent;
   }
   const light = isLightBg(glow, base);
-  return { url: img.src, img, glow, base, light, accent: light ? (accent || LIGHT_ACCENT) : null, text: normalizeText(o), gallery: Array.isArray(o.gallery) ? o.gallery : [] };
+  return { url: img.src, img, glow, base, light, accent: light ? (accent || LIGHT_ACCENT) : null, text: normalizeText(o), sheet: o.sheet ? String(o.sheet) : '', gallery: Array.isArray(o.gallery) ? o.gallery : [] };
 }
 
 function setBackground(p) {
@@ -1176,7 +1176,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) refr
 // ===== رابط Google Sheets (تطبيق الويب Apps Script) =====
 // الصق هنا الرابط الذي يعطيك إياه Google بعد نشر الملف google-apps-script.gs (ينتهي بـ /exec).
 // خطوات الربط مكتوبة في أعلى ملف google-apps-script.gs
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwUCm49PYozgrezYL0-eil0yUfljkrvpJ8t1qZ8DG4P6NkqrvbQolI0BHyNNiX6RuGYVw/exec';   // الصق هنا رابط /exec الخاص بجدول DAMASO
+const SHEET_URL = '';   // الصق هنا رابط /exec الخاص بجدول DAMASO
 
 const orderBtn    = document.querySelector('.text button');
 const orderOverlay = document.getElementById('orderOverlay');
@@ -1382,6 +1382,7 @@ orderForm.addEventListener('submit', async e => {
     governorate: fGov.value,
     address:      fAddr.value.trim(),
     product:      els.name ? els.name.textContent.trim() : '',
+    sheet:        (products[current] && products[current].sheet) || '',
     quantity:     orderQty,
     totalUsd:     usd,
     totalSyp:     Math.round(usd * USD_TO_SYP),
