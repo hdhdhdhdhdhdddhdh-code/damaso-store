@@ -1176,7 +1176,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) refr
 // ===== رابط Google Sheets (تطبيق الويب Apps Script) =====
 // الصق هنا الرابط الذي يعطيك إياه Google بعد نشر الملف google-apps-script.gs (ينتهي بـ /exec).
 // خطوات الربط مكتوبة في أعلى ملف google-apps-script.gs
-const SHEET_URL = '';   // الصق هنا رابط /exec الخاص بجدول DAMASO
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw37noGEdTZKxjaLuiJSdjKRrfz--dFzvZE4lll2GfxRJfwayDfD2JHExD0h0pGeklZJw/exec';   // الصق هنا رابط /exec الخاص بجدول DAMASO
 
 const orderBtn    = document.querySelector('.text button');
 const orderOverlay = document.getElementById('orderOverlay');
